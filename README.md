@@ -10,7 +10,7 @@ PaperLoom turns research papers into verifiable, learnable, runnable workspaces 
 
 <br/>
 
-<img src="docs/images/hero.gif" alt="PaperLoom — isometric paper stack, evidence graph, and attention playground" width="920"/>
+<img src="docs/images/home.png" alt="PaperLoom home — upload a PDF or name a paper to start" width="920"/>
 
 <br/>
 
@@ -49,32 +49,13 @@ Ask any model to summarise a paper and you get fluent prose you cannot check. Wh
 
 **PaperLoom inverts that.** Every claim carries the page and the exact quote it rests on. Measured results, author interpretation, and background are labelled separately. Anything the excerpt does not directly support is never marked verified.
 
-<table>
-<tr>
-<td width="50%" valign="top">
-
-**Typical AI summary**
-
-- Prose you have to trust
-- Claims blended together
-- Uncertainty hidden
-- Missing data → plausible guess
-- Another API key
-
-</td>
-<td width="50%" valign="top">
-
-**PaperLoom**
-
-- Page + exact quote per claim
-- Measured / interpretation / background
-- Unsupported stays `needs-review`
-- Source dropped, not guessed
-- Your agent's existing model
-
-</td>
-</tr>
-</table>
+| Typical AI summary | PaperLoom |
+| --- | --- |
+| Prose you have to trust | Page + exact quote per claim |
+| Claims blended together | Measured / interpretation / background |
+| Uncertainty hidden | Unsupported stays `needs-review` |
+| Missing data → plausible guess | Source dropped, not guessed |
+| Another API key | Your agent's existing model |
 
 ---
 
@@ -88,10 +69,6 @@ Explain Attention Is All You Need using the PaperLoom plugin.
 
 PaperLoom finds the paper on arXiv, downloads it, gathers published context (version history, DOI, venue, citation counts), reads it page by page, and opens a finished local site in your browser.
 
-<table>
-<tr>
-<td width="65%" valign="top">
-
 ### How it works
 
 1. **Ask** — name a paper or drop a PDF path
@@ -100,15 +77,6 @@ PaperLoom finds the paper on arXiv, downloads it, gathers published context (ver
 4. **Validate** — reject unsupported claims before publish
 5. **Open** — local site + full studio + portable `.trace.json`
 
-</td>
-<td width="35%" valign="top" align="center">
-
-<img src="docs/images/scroll-journey.gif" alt="Animated product journey — Ask, Evidence, Learn, Story, Share" width="280"/>
-
-</td>
-</tr>
-</table>
-
 ---
 
 <a id="how-it-works"></a>
@@ -116,10 +84,6 @@ PaperLoom finds the paper on arXiv, downloads it, gathers published context (ver
 ## Pipeline
 
 From paper name to proof-linked site — every stage is explicit and auditable.
-
-<p align="center">
-  <img src="docs/images/pipeline.gif" alt="PaperLoom pipeline — paper name, arXiv, evidence, report, story, learning, validate, trace.json, site" width="920"/>
-</p>
 
 ```mermaid
 flowchart LR
@@ -153,11 +117,16 @@ flowchart LR
 
 ## What you get
 
+Four workspaces — one project, every surface linked to the same evidence graph.
+
 <table>
 <tr>
-<td colspan="2" align="center">
-  <img src="docs/images/workspaces.gif" alt="PaperLoom workspaces — Lab, Story, Preview, Library" width="880"/>
-</td>
+<td width="50%"><img src="docs/images/lab.png" alt="Lab workspace — overview, claims, evidence health, playgrounds" width="100%"/><br/><sub><strong>Lab</strong> — inspect evidence, claims, and health metrics</sub></td>
+<td width="50%"><img src="docs/images/story.png" alt="Story workspace — edit narrative and link claims to sections" width="100%"/><br/><sub><strong>Story</strong> — edit narrative and link claims to sections</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/images/preview.png" alt="Preview workspace — published reading experience" width="100%"/><br/><sub><strong>Preview</strong> — published reading experience</sub></td>
+<td width="50%"><img src="docs/images/library.png" alt="Library — archive, compare, and import projects" width="100%"/><br/><sub><strong>Library</strong> — archive, compare, and import projects</sub></td>
 </tr>
 </table>
 
@@ -193,10 +162,10 @@ Every claim and story section has its own anchor in the studio and in the portab
 
 ## Evidence chain
 
-Nothing ships without provenance. The evidence graph is the hub — every surface links back to it.
+Nothing ships without provenance. Click any claim — see the exact page and quote it rests on.
 
 <p align="center">
-  <img src="docs/images/evidence-chain.gif" alt="Evidence validation chain — PDF pages and arXiv meta feed the evidence graph; report, story, learning, and playground link out; validate gates publish" width="720"/>
+  <img src="docs/images/lab-evidence.png" alt="Evidence ledger with verified claim linked to PDF page and quote" width="920"/>
 </p>
 
 | Link type | What it means |
@@ -310,7 +279,7 @@ paperloom/
 ├── viewer/                # Portable single-file site renderer
 ├── scripts/               # Build, check, example generation
 └── docs/
-    ├── images/            # README illustrations (GIF/PNG; SVG sources)
+    ├── images/            # README screenshots from the live UI
     └── framer-reference/  # Design reference export
 ```
 
@@ -326,6 +295,7 @@ npm run lint             # eslint
 npm run test             # vitest
 npm run build            # production build
 npm run check            # full CI locally
+npm run capture:readme   # regenerate README screenshots (dev server must be running)
 ```
 
 ---
@@ -337,6 +307,4 @@ npm run check            # full CI locally
 <div align="center">
 <br/>
 <sub>Built for researchers who verify before they trust.</sub>
-<br/><br/>
-<img src="docs/images/hero.gif" alt="" width="480"/>
 </div>
