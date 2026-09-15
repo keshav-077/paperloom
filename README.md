@@ -10,7 +10,7 @@ PaperLoom turns research papers into verifiable, learnable, runnable workspaces 
 
 <br/>
 
-<img src="docs/images/hero.svg" alt="PaperLoom — isometric paper stack, evidence graph, and attention playground" width="920"/>
+<img src="docs/images/hero.gif" alt="PaperLoom — isometric paper stack, evidence graph, and attention playground" width="920"/>
 
 <br/>
 
@@ -103,7 +103,7 @@ PaperLoom finds the paper on arXiv, downloads it, gathers published context (ver
 </td>
 <td width="35%" valign="top" align="center">
 
-<img src="docs/images/scroll-journey.svg" alt="Animated product journey — Ask, Evidence, Learn, Story, Share" width="280"/>
+<img src="docs/images/scroll-journey.gif" alt="Animated product journey — Ask, Evidence, Learn, Story, Share" width="280"/>
 
 </td>
 </tr>
@@ -118,7 +118,7 @@ PaperLoom finds the paper on arXiv, downloads it, gathers published context (ver
 From paper name to proof-linked site — every stage is explicit and auditable.
 
 <p align="center">
-  <img src="docs/images/pipeline.svg" alt="PaperLoom pipeline — paper name, arXiv, evidence, report, story, learning, validate, trace.json, site" width="920"/>
+  <img src="docs/images/pipeline.gif" alt="PaperLoom pipeline — paper name, arXiv, evidence, report, story, learning, validate, trace.json, site" width="920"/>
 </p>
 
 ```mermaid
@@ -156,7 +156,7 @@ flowchart LR
 <table>
 <tr>
 <td colspan="2" align="center">
-  <img src="docs/images/workspaces.svg" alt="PaperLoom workspaces — Lab, Story, Preview, Library" width="880"/>
+  <img src="docs/images/workspaces.gif" alt="PaperLoom workspaces — Lab, Story, Preview, Library" width="880"/>
 </td>
 </tr>
 </table>
@@ -196,7 +196,7 @@ Every claim and story section has its own anchor in the studio and in the portab
 Nothing ships without provenance. The evidence graph is the hub — every surface links back to it.
 
 <p align="center">
-  <img src="docs/images/evidence-chain.svg" alt="Evidence validation chain — PDF pages and arXiv meta feed the evidence graph; report, story, learning, and playground link out; validate gates publish" width="720"/>
+  <img src="docs/images/evidence-chain.gif" alt="Evidence validation chain — PDF pages and arXiv meta feed the evidence graph; report, story, learning, and playground link out; validate gates publish" width="720"/>
 </p>
 
 | Link type | What it means |
@@ -310,7 +310,7 @@ paperloom/
 ├── viewer/                # Portable single-file site renderer
 ├── scripts/               # Build, check, example generation
 └── docs/
-    ├── images/            # README illustrations (animated SVG)
+    ├── images/            # README illustrations (GIF/PNG; SVG sources)
     └── framer-reference/  # Design reference export
 ```
 
@@ -338,5 +338,5 @@ npm run check            # full CI locally
 <br/>
 <sub>Built for researchers who verify before they trust.</sub>
 <br/><br/>
-<img src="docs/images/hero.svg" alt="" width="480"/>
+<img src="docs/images/hero.gif" alt="" width="480"/>
 </div>

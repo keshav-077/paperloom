@@ -15,7 +15,8 @@
     "check:artifacts": "node scripts/check-artifacts.mjs",
     "build:validator": "node scripts/build-plugin-validator.mjs",
     "build:artifacts": "npm run build:viewer && npm run build:validator",
-    "build:example-en": "node scripts/build-english-example.mjs"
+    "build:example-en": "node scripts/build-english-example.mjs",
+    "build:readme-images": "node scripts/build-readme-images.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.118.0",
@@ -35,6 +36,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
+    "gifenc": "^1.0.3",
     "preact": "10.29.1",
     "rolldown": "1.2.4",
     "tailwindcss": "^4",
