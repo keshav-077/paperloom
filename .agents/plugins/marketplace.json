@@ -1,0 +1,20 @@
+{
+  "name": "paperloom-tools",
+  "interface": {
+    "displayName": "PaperLoom"
+  },
+  "plugins": [
+    {
+      "name": "paperloom",
+      "source": {
+        "source": "local",
+        "path": "./plugins/paperloom"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

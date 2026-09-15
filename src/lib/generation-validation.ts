@@ -1,0 +1,438 @@
+import { ZodError } from "zod";
+import { LEARNING_REQUIREMENTS } from "./schema";
+import type {
+  DeepReport,
+  PaperEvidence,
+  ResearchProject,
+  SourceReference,
+  StorySpec,
+  TechnicalAppendix,
+} from "./schema";
+import { FormulaError, collectParams, evaluateNode, parseFormula } from "./formula";
+
+export class IntegrityError extends Error {
+  readonly issues: string[];
+
+  constructor(stage: string, issues: string[]) {
+    super(`${stage} integrity check failed: ${issues.join("; ")}`);
+    this.name = "IntegrityError";
+    this.issues = issues;
+  }
+}
+
+function duplicates(values: string[]) {
+  const seen = new Set<string>();
+  return [...new Set(values.filter((value) => (seen.has(value) ? true : !seen.add(value))))];
+}
+
+function checkReference(
+  reference: SourceReference,
+  owner: string,
+  sourceIds: Set<string>,
+  issues: string[],
+) {
+  if (!sourceIds.has(reference.sourceId)) {
+    issues.push(`${owner} uses an unknown source: ${reference.sourceId}`);
+  }
+  if (!reference.excerpt.trim()) issues.push(`${owner} is missing a verifiable excerpt`);
+  if (reference.sourceId === "paper" && !reference.page) {
+    issues.push(`${owner} is missing a PDF page`);
+  }
+}
+
+export function validateEvidenceIntegrity(evidence: PaperEvidence) {
+  const issues: string[] = [];
+  const sourceIds = new Set(evidence.sources.map((source) => source.id));
+  const duplicateSources = duplicates(evidence.sources.map((source) => source.id));
+  const duplicateClaims = duplicates(evidence.claims.map((claim) => claim.id));
+  const duplicateMetrics = duplicates(evidence.metrics.map((metric) => metric.id));
+
+  if (!sourceIds.has("paper")) issues.push('The main PDF source "paper" is missing');
+  if (duplicateSources.length) issues.push(`Tekrarlanan source ID: ${duplicateSources.join(", ")}`);
+  if (duplicateClaims.length) issues.push(`Tekrarlanan claim ID: ${duplicateClaims.join(", ")}`);
+  if (duplicateMetrics.length) issues.push(`Tekrarlanan metric ID: ${duplicateMetrics.join(", ")}`);
+
+  evidence.claims.forEach((claim) => {
+    claim.sourceRefs.forEach((reference) =>
+      checkReference(reference, `Claim ${claim.id}`, sourceIds, issues),
+    );
+    if (claim.confidence === "verified" && claim.sourceRefs.every((reference) => !reference.excerpt.trim())) {
+      issues.push(`Verified claim ${claim.id} is missing a verifiable excerpt`);
+    }
+  });
+  evidence.metrics.forEach((metric) =>
+    checkReference(metric.sourceRef, `Metric ${metric.id}`, sourceIds, issues),
+  );
+  evidence.glossary.forEach((item) => {
+    if (item.sourceRef) checkReference(item.sourceRef, `Terim ${item.term}`, sourceIds, issues);
+  });
+
+  if (!evidence.claims.some((claim) => claim.kind === "method")) {
+    issues.push("At least one method claim is required");
+  }
+  if (!evidence.claims.some((claim) => claim.kind === "limitation")) {
+    issues.push("At least one limitation claim is required");
+  }
+  if (!evidence.claims.some((claim) => claim.confidence === "verified")) {
+    issues.push("At least one directly verified claim is required");
+  }
+
+  if (issues.length) throw new IntegrityError("Evidence", issues);
+}
+
+export function validateStoryIntegrity(
+  story: StorySpec,
+  evidence: PaperEvidence,
+  expectedSectionCount: number,
+) {
+  const issues: string[] = [];
+  const claims = new Map(evidence.claims.map((claim) => [claim.id, claim]));
+  const metricValues = evidence.metrics.map((metric) => metric.value);
+  const duplicateSections = duplicates(story.sections.map((section) => section.id));
+
+  if (story.sections.length !== expectedSectionCount) {
+    issues.push(`${story.sections.length} sections were produced instead of ${expectedSectionCount}`);
+  }
+  if (duplicateSections.length) issues.push(`Tekrarlanan section ID: ${duplicateSections.join(", ")}`);
+
+  story.sections.forEach((section, index) => {
+    const expectedIndex = String(index + 1).padStart(2, "0");
+    if (section.indexLabel !== expectedIndex) {
+      issues.push(`${section.id} indexLabel must be ${expectedIndex}`);
+    }
+    section.claimIds.forEach((claimId) => {
+      if (!claims.has(claimId)) issues.push(`${section.id} uses an unknown claim: ${claimId}`);
+    });
+    if (section.visual.type === "comparison") {
+      section.visual.items.forEach((item) => {
+        const exists = metricValues.some((value) => Math.abs(value - item.value) < 1e-9);
+        if (!exists) issues.push(`${item.value} in the ${section.id} visual is not in evidence metrics`);
+      });
+    }
+    if (section.visual.type === "architecture") {
+      const nodeIds = new Set(section.visual.nodes.map((node) => node.id));
+      section.visual.edges.forEach((edge) => {
+        if (!nodeIds.has(edge.from)) issues.push(`${section.id} has an unknown edge source: ${edge.from}`);
+        if (!nodeIds.has(edge.to)) issues.push(`${section.id} has an unknown edge target: ${edge.to}`);
+      });
+    }
+    if (section.visual.type === "matrix") {
+      const matrix = section.visual;
+      matrix.rows.forEach((row) => {
+        if (row.cells.length !== matrix.columns.length) {
+          issues.push(`${section.id} matrix row does not match the column count: ${row.label}`);
+        }
+      });
+    }
+  });
+
+  const visualTypes = new Set(story.sections.map((section) => section.visual.type));
+  const advancedVisuals = new Set(["architecture", "equation", "timeline", "matrix", "infographic"]);
+  if (visualTypes.size < 3) issues.push("The story must use at least three different visual grammars");
+  if (![...visualTypes].some((type) => advancedVisuals.has(type))) {
+    issues.push("The story must include at least one advanced architecture, equation, timeline, matrix or infographic visual");
+  }
+
+  const linkedClaims = story.sections.flatMap((section) =>
+    section.claimIds.map((claimId) => claims.get(claimId)).filter(Boolean),
+  );
+  if (!linkedClaims.some((claim) => claim?.kind === "method")) {
+    issues.push("The story must link to a method claim");
+  }
+  if (!linkedClaims.some((claim) => claim?.kind === "limitation")) {
+    issues.push("The story must link to a limitation claim");
+  }
+
+  if (issues.length) throw new IntegrityError("Story", issues);
+}
+
+export function validateDeepReportIntegrity(
+  report: DeepReport,
+  evidence: PaperEvidence,
+  expectedSectionCount: number,
+) {
+  const issues: string[] = [];
+  const claimIds = new Set(evidence.claims.map((claim) => claim.id));
+  const duplicateSections = duplicates(report.sections.map((section) => section.id));
+  if (report.sections.length !== expectedSectionCount) {
+    issues.push(`${report.sections.length} report sections were produced instead of ${expectedSectionCount}`);
+  }
+  if (duplicateSections.length) issues.push(`Tekrarlanan report ID: ${duplicateSections.join(", ")}`);
+  report.sections.forEach((section) => section.claimIds.forEach((claimId) => {
+    if (!claimIds.has(claimId)) issues.push(`${section.id} uses an unknown claim: ${claimId}`);
+  }));
+  const kinds = new Set(report.sections.map((section) => section.kind));
+  ["contribution", "mechanism", "experiment", "critique", "reproduction", "implication"].forEach((kind) => {
+    if (!kinds.has(kind as DeepReport["sections"][number]["kind"])) issues.push(`The report must include a ${kind} section`);
+  });
+  if (issues.length) throw new IntegrityError("DeepReport", issues);
+}
+
+export function validateTechnicalAppendixIntegrity(
+  appendix: TechnicalAppendix,
+  evidence: PaperEvidence,
+) {
+  const issues: string[] = [];
+  const claimIds = new Set(evidence.claims.map((claim) => claim.id));
+  const linkedItems = [
+    ...appendix.equations,
+    ...appendix.algorithmSteps,
+    ...appendix.codeSketches,
+    ...appendix.complexity,
+  ];
+  linkedItems.forEach((item, index) => item.claimIds.forEach((claimId) => {
+    if (!claimIds.has(claimId)) issues.push(`Technical item ${index + 1} uses an unknown claim: ${claimId}`);
+  }));
+  const duplicateEquations = duplicates(appendix.equations.map((equation) => equation.id));
+  if (duplicateEquations.length) issues.push(`Tekrarlanan equation ID: ${duplicateEquations.join(", ")}`);
+  if (!linkedItems.length) issues.push("The technical appendix must include at least one evidence-linked item");
+  if (issues.length) throw new IntegrityError("TechnicalAppendix", issues);
+}
+
+/**
+ * Öğrenme katmanının bütünlüğü.
+ *
+ * İki iş yapar: (1) `depth` için zorunlu blokların var olduğunu doğrular,
+ * (2) her bloğun kendi içinde tutarlı ve ÇALIŞIR olduğunu denetler. İkincisi
+ * özellikle interaktifler için kritik: bir formül ayrıştırılamıyorsa veya
+ * bildirilmeyen bir parametreye atıfta bulunuyorsa, oynatıcı çalışma anında
+ * kırılır. Bunu üretim anında yakalamak, kullanıcıya bozuk bir kaydırma
+ * çubuğu göstermekten iyidir.
+ */
+export function validateLearningIntegrity(
+  project: ResearchProject,
+  options: { requireDepthBlocks?: boolean } = {},
+) {
+  const issues: string[] = [];
+  const claimIds = new Set(project.evidence.claims.map((claim) => claim.id));
+  const sourceIds = new Set(project.evidence.sources.map((source) => source.id));
+
+  const checkClaims = (ids: readonly string[], owner: string) => {
+    ids.forEach((id) => {
+      if (!claimIds.has(id)) issues.push(`${owner}: bilinmeyen claim ${id}`);
+    });
+  };
+
+  // Derinlik zorunluluğu yalnızca ÜRETİMDE geçerlidir. İçe aktarmada
+  // uygulanırsa öğrenme katmanından önce üretilmiş projeler kütüphaneye
+  // alınamaz; mevcut çalışmayı bozmamak için varsayılan kapalı.
+  if (options.requireDepthBlocks) {
+    for (const block of LEARNING_REQUIREMENTS[project.depth]) {
+      const value = project[block as keyof ResearchProject];
+      const missing = value === undefined || (Array.isArray(value) && value.length === 0);
+      if (missing) issues.push(`${block}: required at "${project.depth}" depth`);
+    }
+  }
+
+  if (project.figures) {
+    /**
+     * Şekiller de kanıt zincirinin parçası. Şema biçimi denetliyor, burada
+     * anlam denetleniyor: sayfa makalenin içinde mi, aynı şekil iki kez
+     * gömülmüş mü, ve toplam ağırlık taşınabilir mi.
+     *
+     * Bütçe gerçek bir kısıt: her şekil `.trace.json`'a base64 olarak giriyor
+     * ve dosya hem indirilen çıktı hem paylaşılan sayfa. Sınırsız bırakılırsa
+     * bir proje sessizce onlarca megabayta çıkar.
+     */
+    const MAX_TOTAL_IMAGE_BYTES = 1_400_000;
+    const duplicateFigures = duplicates(project.figures.map((figure) => figure.id));
+    if (duplicateFigures.length) issues.push(`figures: tekrarlanan ID ${duplicateFigures.join(", ")}`);
+
+    let totalBytes = 0;
+    project.figures.forEach((figure) => {
+      checkClaims(figure.claimIds, `figures.${figure.id}`);
+      // base64 dört karakterde üç bayt taşır; dolgu payı ihmal edilebilir.
+      totalBytes += Math.round((figure.image.length - figure.image.indexOf(",") - 1) * 0.75);
+      if (figure.caption.trim() === figure.whyItMatters.trim()) {
+        issues.push(`figures.${figure.id}: whyItMatters must add to the caption, not repeat it`);
+      }
+    });
+
+    if (totalBytes > MAX_TOTAL_IMAGE_BYTES) {
+      issues.push(
+        `figures: embedded images total ${Math.round(totalBytes / 1024)} KB, over the ${Math.round(MAX_TOTAL_IMAGE_BYTES / 1024)} KB budget`,
+      );
+    }
+  }
+
+  if (project.primer) {
+    const conceptIds = project.primer.concepts.map((concept) => concept.id);
+    const duplicateConcepts = duplicates(conceptIds);
+    if (duplicateConcepts.length) issues.push(`primer: tekrarlanan kavram ID ${duplicateConcepts.join(", ")}`);
+    const known = new Set(conceptIds);
+    project.primer.concepts.forEach((concept) => {
+      concept.prerequisiteIds.forEach((id) => {
+        if (id === concept.id) issues.push(`primer.${concept.id}: cannot list itself as a prerequisite`);
+        else if (!known.has(id)) issues.push(`primer.${concept.id}: unknown prerequisite ${id}`);
+      });
+      checkClaims(concept.claimIds, `primer.${concept.id}`);
+    });
+  }
+
+  if (project.derivations) {
+    const duplicateDerivations = duplicates(project.derivations.map((item) => item.id));
+    if (duplicateDerivations.length) issues.push(`derivations: tekrarlanan ID ${duplicateDerivations.join(", ")}`);
+    const equationIds = new Set((project.technicalAppendix?.equations ?? []).map((item) => item.id));
+    project.derivations.forEach((derivation) => {
+      if (derivation.equationId && !equationIds.has(derivation.equationId)) {
+        issues.push(`derivations.${derivation.id}: bilinmeyen equationId ${derivation.equationId}`);
+      }
+      const duplicateSteps = duplicates(derivation.steps.map((step) => step.id));
+      if (duplicateSteps.length) issues.push(`derivations.${derivation.id}: duplicate step id ${duplicateSteps.join(", ")}`);
+      checkClaims(derivation.claimIds, `derivations.${derivation.id}`);
+    });
+  }
+
+  if (project.quiz) {
+    const duplicateQuestions = duplicates(project.quiz.questions.map((question) => question.id));
+    if (duplicateQuestions.length) issues.push(`quiz: tekrarlanan soru ID ${duplicateQuestions.join(", ")}`);
+    project.quiz.questions.forEach((question) => {
+      const correct = question.options.filter((option) => option.correct).length;
+      if (correct === 0) issues.push(`quiz.${question.id}: no correct option`);
+      if (question.kind !== "multi" && correct !== 1) {
+        issues.push(`quiz.${question.id}: a "${question.kind}" question must have exactly one correct option (found ${correct})`);
+      }
+      if (question.kind === "multi" && correct < 2) {
+        issues.push(`quiz.${question.id}: a "multi" question must have at least two correct options`);
+      }
+      if (question.kind === "true-false" && question.options.length !== 2) {
+        issues.push(`quiz.${question.id}: a true/false question must have exactly two options`);
+      }
+      checkClaims(question.claimIds, `quiz.${question.id}`);
+    });
+  }
+
+  if (project.interactives) {
+    const duplicateInteractives = duplicates(project.interactives.map((item) => item.id));
+    if (duplicateInteractives.length) issues.push(`interactives: tekrarlanan ID ${duplicateInteractives.join(", ")}`);
+
+    project.interactives.forEach((interactive) => {
+      const owner = `interactives.${interactive.id}`;
+      checkClaims(interactive.claimIds, owner);
+
+      if (interactive.kind === "formula-playground") {
+        const names = interactive.parameters.map((parameter) => parameter.name);
+        const duplicateParams = duplicates(names);
+        if (duplicateParams.length) issues.push(`${owner}: tekrarlanan parametre ${duplicateParams.join(", ")}`);
+        const declared = new Set(names);
+
+        interactive.parameters.forEach((parameter) => {
+          if (!(parameter.min < parameter.max)) {
+            issues.push(`${owner}.${parameter.name}: min must be less than max`);
+          }
+          if (parameter.paperValue < parameter.min || parameter.paperValue > parameter.max) {
+            issues.push(`${owner}.${parameter.name}: the paper value (${parameter.paperValue}) is outside the range`);
+          }
+          if (parameter.step > parameter.max - parameter.min) {
+            issues.push(`${owner}.${parameter.name}: the step is larger than the range`);
+          }
+        });
+
+        const paperPoint: Record<string, number> = {};
+        interactive.parameters.forEach((parameter) => {
+          paperPoint[parameter.name] = parameter.paperValue;
+        });
+
+        const outputIds = new Set<string>();
+        interactive.outputs.forEach((output) => {
+          if (outputIds.has(output.id)) issues.push(`${owner}: duplicate output id ${output.id}`);
+          outputIds.add(output.id);
+          try {
+            const ast = parseFormula(output.formula);
+            collectParams(ast).forEach((name) => {
+              if (!declared.has(name)) {
+                issues.push(`${owner}.${output.id}: the formula uses an undeclared parameter: ${name}`);
+              }
+            });
+            // Makalenin kendi noktasında sonlu bir değer üretmeyen formül,
+            // kullanıcı hiçbir şeye dokunmadan bozuk görünür.
+            const atPaperValue = evaluateNode(ast, paperPoint);
+            if (!Number.isFinite(atPaperValue)) {
+              issues.push(`${owner}.${output.id}: does not produce a finite result at the paper values`);
+            }
+          } catch (error) {
+            const detail = error instanceof FormulaError ? error.message : String(error);
+            issues.push(`${owner}.${output.id}: invalid formula — ${detail}`);
+          }
+        });
+
+        if (interactive.chart) {
+          if (!declared.has(interactive.chart.xParam)) {
+            issues.push(`${owner}.chart: xParam is an undeclared parameter (${interactive.chart.xParam})`);
+          }
+          interactive.chart.series.forEach((series) => {
+            if (!outputIds.has(series.outputId)) {
+              issues.push(`${owner}.chart: unknown output ${series.outputId}`);
+            }
+          });
+        }
+      }
+
+      if (interactive.kind === "mechanism-simulation") {
+        const nodeIds = new Set(interactive.stageNodes.map((node) => node.id));
+        const duplicateNodes = duplicates(interactive.stageNodes.map((node) => node.id));
+        if (duplicateNodes.length) issues.push(`${owner}: duplicate node id ${duplicateNodes.join(", ")}`);
+        interactive.frames.forEach((frame, index) => {
+          frame.activeNodeIds.forEach((id) => {
+            if (!nodeIds.has(id)) issues.push(`${owner}.frames[${index}]: unknown node ${id}`);
+          });
+          if (frame.grid) {
+            const { rowLabels, columnLabels, values } = frame.grid;
+            if (values.length !== rowLabels.length) {
+              issues.push(`${owner}.frames[${index}].grid: the row count does not match the labels`);
+            }
+            values.forEach((row, rowIndex) => {
+              if (row.length !== columnLabels.length) {
+                issues.push(`${owner}.frames[${index}].grid: row ${rowIndex} does not match the column count`);
+              }
+              row.forEach((cell) => {
+                if (!Number.isFinite(cell)) {
+                  issues.push(`${owner}.frames[${index}].grid: non-finite cell value`);
+                }
+              });
+            });
+          }
+        });
+      }
+
+      if (interactive.kind === "dataset-explorer") {
+        const columnIds = interactive.columns.map((column) => column.id);
+        const duplicateColumns = duplicates(columnIds);
+        if (duplicateColumns.length) issues.push(`${owner}: duplicate column id ${duplicateColumns.join(", ")}`);
+        interactive.rows.forEach((row, index) => {
+          if (row.cells.length !== interactive.columns.length) {
+            issues.push(`${owner}.rows[${index}]: the cell count does not match the column count`);
+            return;
+          }
+          interactive.columns.forEach((column, columnIndex) => {
+            const cell = row.cells[columnIndex];
+            if (column.type === "number" && (typeof cell !== "number" || !Number.isFinite(cell))) {
+              issues.push(`${owner}.rows[${index}].${column.id}: a numeric column holds a non-numeric value`);
+            }
+          });
+        });
+        if (interactive.defaultSort && !columnIds.includes(interactive.defaultSort.columnId)) {
+          issues.push(`${owner}.defaultSort: unknown column ${interactive.defaultSort.columnId}`);
+        }
+        checkReference(interactive.sourceRef, `${owner}.sourceRef`, sourceIds, issues);
+      }
+    });
+  }
+
+  if (project.applicationGuide) {
+    const guide = project.applicationGuide;
+    guide.recipe.forEach((item, index) => checkClaims(item.claimIds, `applicationGuide.recipe[${index}]`));
+    guide.hyperparameters.forEach((item) => checkClaims(item.claimIds, `applicationGuide.${item.name}`));
+    guide.pitfalls.forEach((item, index) => checkClaims(item.claimIds, `applicationGuide.pitfalls[${index}]`));
+  }
+
+  if (issues.length) throw new IntegrityError("Learning", issues);
+}
+
+export function describeValidationError(error: unknown) {
+  if (error instanceof IntegrityError) return error.issues;
+  if (error instanceof ZodError) {
+    return error.issues.map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`);
+  }
+  return [error instanceof Error ? error.message : "Unknown validation error"];
+}

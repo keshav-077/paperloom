@@ -1,0 +1,4 @@
+interface:
+  display_name: "PaperLoom"
+  short_description: "Turn papers into verified interactive studies"
+  default_prompt: "Use $paperloom to analyze a paper into a validated PaperLoom project."
