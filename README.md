@@ -1,8 +1,8 @@
 <div align="center">
 
-# PaperLoom
+<img src="docs/images/logo-banner.gif" alt="PaperLoom — weave papers into proof-linked experiences" width="920"/>
 
-*Weave papers into proof-linked experiences.*
+<br/><br/>
 
 **Name a paper. Get an interactive site where every claim points back to a page and a quote.**
 
@@ -10,7 +10,7 @@ PaperLoom turns research papers into verifiable, learnable, runnable workspaces 
 
 <br/>
 
-<img src="docs/images/home.png" alt="PaperLoom home — upload a PDF or name a paper to start" width="920"/>
+<img src="docs/images/demo.gif" alt="PaperLoom studio tour — home, Lab, evidence, Story, Preview, Library" width="920"/>
 
 <br/>
 
@@ -30,12 +30,14 @@ PaperLoom turns research papers into verifiable, learnable, runnable workspaces 
 </p>
 
 <p>
-  <a href="#install-in-under-a-minute"><strong>Install</strong></a> ·
+  <a href="#install"><strong>Install</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
+  <a href="#architecture"><strong>Architecture</strong></a> ·
   <a href="#what-you-get"><strong>What you get</strong></a> ·
-  <a href="#the-full-application"><strong>Web app</strong></a> ·
   <a href="#development"><strong>Develop</strong></a>
 </p>
+
+<sub>Animated diagrams also available as <a href="docs/images/">SVG sources</a> in the repo.</sub>
 
 </div>
 
@@ -49,13 +51,32 @@ Ask any model to summarise a paper and you get fluent prose you cannot check. Wh
 
 **PaperLoom inverts that.** Every claim carries the page and the exact quote it rests on. Measured results, author interpretation, and background are labelled separately. Anything the excerpt does not directly support is never marked verified.
 
-| Typical AI summary | PaperLoom |
-| --- | --- |
-| Prose you have to trust | Page + exact quote per claim |
-| Claims blended together | Measured / interpretation / background |
-| Uncertainty hidden | Unsupported stays `needs-review` |
-| Missing data → plausible guess | Source dropped, not guessed |
-| Another API key | Your agent's existing model |
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Typical AI summary**
+
+- Prose you have to trust
+- Claims blended together
+- Uncertainty hidden
+- Missing data → plausible guess
+- Another API key
+
+</td>
+<td width="50%" valign="top">
+
+**PaperLoom**
+
+- Page + exact quote per claim
+- Measured / interpretation / background
+- Unsupported stays `needs-review`
+- Source dropped, not guessed
+- Your agent's existing model
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -69,21 +90,17 @@ Explain Attention Is All You Need using the PaperLoom plugin.
 
 PaperLoom finds the paper on arXiv, downloads it, gathers published context (version history, DOI, venue, citation counts), reads it page by page, and opens a finished local site in your browser.
 
-### How it works
-
-1. **Ask** — name a paper or drop a PDF path
-2. **Extract** — page-by-page text with `pdftotext`
-3. **Build** — evidence graph, report, story, learning, playgrounds
-4. **Validate** — reject unsupported claims before publish
-5. **Open** — local site + full studio + portable `.trace.json`
-
 ---
 
 <a id="how-it-works"></a>
 
-## Pipeline
+## How it works
 
 From paper name to proof-linked site — every stage is explicit and auditable.
+
+<p align="center">
+  <img src="docs/images/pipeline-flow.gif" alt="PaperLoom pipeline — Ask, Resolve, Extract, Build, Validate, Publish" width="920"/>
+</p>
 
 ```mermaid
 flowchart LR
@@ -96,20 +113,67 @@ flowchart LR
   F -->|fail| H[Reject unsupported]
 ```
 
-<details>
-<summary><strong>What each stage produces</strong></summary>
-
-| Stage | Output |
+| Step | What happens |
 | --- | --- |
-| **Paper name / PDF** | Resolved arXiv ID or local file path |
-| **arXiv + context** | Metadata, version history, DOI, venue, citations |
-| **Evidence + quotes** | Claims with page numbers and verbatim excerpts |
-| **Report + story** | Structured report and narrative sections |
-| **Learning + quiz** | Primer, playgrounds, self-check questions |
+| **Ask** | Name a paper or point the plugin at a PDF |
+| **Resolve** | arXiv ID, metadata, version history, DOI, venue |
+| **Extract** | Page-by-page text via `pdftotext` |
+| **Build** | Evidence graph, report, story, learning, playgrounds |
 | **Validate** | Hard gate — unsupported claims are rejected |
-| **Site + JSON** | Self-contained HTML site and portable `.trace.json` |
+| **Publish** | Local studio + portable `.trace.json` + static site |
 
-</details>
+---
+
+<a id="architecture"></a>
+
+## Architecture
+
+Agent in. Proof-linked site out. No second API key — your existing Claude, Codex, or Antigravity session does the work.
+
+<p align="center">
+  <img src="docs/images/architecture.gif" alt="PaperLoom system architecture — agent, plugin, pipeline, studio, viewer" width="920"/>
+</p>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Plugin path** (recommended)
+
+1. Install `paperloom@paperloom-tools`
+2. Ask your agent to run the skill
+3. Browser opens with studio + site
+
+</td>
+<td width="50%" valign="top">
+
+**Web app path**
+
+1. Clone repo, `npm run dev`
+2. Upload PDF or use provider keys
+3. Edit in Lab / Story / Preview
+
+</td>
+</tr>
+</table>
+
+---
+
+## Evidence model
+
+Nothing ships without provenance. The evidence graph is the hub — every surface links back to it.
+
+<p align="center">
+  <img src="docs/images/evidence-hub.gif" alt="Evidence graph hub — PDF pages and arXiv feed in; report, story, learning link out" width="920"/>
+</p>
+
+| Link type | What it means |
+| --- | --- |
+| **PDF pages** | Verbatim quote + page number |
+| **arXiv meta** | Version, DOI, venue, citation context |
+| **Claim types** | Measured / interpretation / background |
+| **Validate** | Unsupported claims blocked before publish |
+| **`.trace.json`** | Portable archive you can reopen anywhere |
 
 ---
 
@@ -117,69 +181,35 @@ flowchart LR
 
 ## What you get
 
-Four workspaces — one project, every surface linked to the same evidence graph.
-
-<table>
-<tr>
-<td width="50%"><img src="docs/images/lab.png" alt="Lab workspace — overview, claims, evidence health, playgrounds" width="100%"/><br/><sub><strong>Lab</strong> — inspect evidence, claims, and health metrics</sub></td>
-<td width="50%"><img src="docs/images/story.png" alt="Story workspace — edit narrative and link claims to sections" width="100%"/><br/><sub><strong>Story</strong> — edit narrative and link claims to sections</sub></td>
-</tr>
-<tr>
-<td width="50%"><img src="docs/images/preview.png" alt="Preview workspace — published reading experience" width="100%"/><br/><sub><strong>Preview</strong> — published reading experience</sub></td>
-<td width="50%"><img src="docs/images/library.png" alt="Library — archive, compare, and import projects" width="100%"/><br/><sub><strong>Library</strong> — archive, compare, and import projects</sub></td>
-</tr>
-</table>
-
-### Run the paper's own equations
-
-Drag sliders on live playgrounds built from the paper's own formulas. Parameters start at verified values and warn you when you leave the region the paper actually tested.
-
-### Learn what the paper assumes
-
-Prerequisites ordered so nothing depends on something you have not read yet. Each one explains why *this* paper needs it — not a generic definition. LaTeX renders as native MathML.
-
-### Check whether you understood it
-
-Every quiz question links to evidence. Get one wrong and PaperLoom shows the page and the original quote behind the right answer.
-
-### Read it as a narrative
-
-Figures sit beside the paragraph that argues them — joined by shared claims, not guessed placement.
-
-### See where the evidence is thin
-
-The evidence health panel is auditable: verified vs needs-review counts, uncited page ranges, unused claims, and single-claim sections — all computed from project data, offline-safe.
-
-### Compare two papers without picking a winner
-
-Line up benchmarks under the same unit, duplicate definitions, and each side's limitations. Every number carries its source page; both papers stay visible.
-
-### Send someone a link to one claim
-
-Every claim and story section has its own anchor in the studio and in the portable single-file copy.
-
----
-
-## Evidence chain
-
-Nothing ships without provenance. Click any claim — see the exact page and quote it rests on.
+Four workspaces orbit one evidence graph. Switch between them without losing provenance.
 
 <p align="center">
-  <img src="docs/images/lab-evidence.png" alt="Evidence ledger with verified claim linked to PDF page and quote" width="920"/>
+  <img src="docs/images/workspace-orbit.gif" alt="Lab, Story, Preview, Library workspaces around the evidence hub" width="920"/>
 </p>
 
-| Link type | What it means |
+| Workspace | Purpose |
 | --- | --- |
-| **PDF pages** | Verbatim quote + page number |
-| **arXiv meta** | Version, DOI, venue, citation context |
-| **Claim → Evidence** | Measured, interpretation, or background |
-| **Validate** | Unsupported claims blocked before publish |
-| **Reject** | No site until evidence is fixed |
-| **Site + JSON** | Portable archive you can reopen anywhere |
+| **Lab** | Inspect evidence, claims, health metrics, playgrounds |
+| **Story** | Edit narrative and link claims to sections |
+| **Preview** | Published reading experience |
+| **Library** | Archive, compare, and import projects |
+
+<details>
+<summary><strong>Feature highlights</strong></summary>
+
+- **Run the paper's own equations** — live playgrounds built from verified formulas
+- **Learn what the paper assumes** — prerequisites ordered by dependency
+- **Check whether you understood it** — quiz questions linked to evidence
+- **Read it as a narrative** — figures beside the paragraphs that argue them
+- **See where evidence is thin** — auditable health panel, offline-safe
+- **Compare two papers** — benchmarks aligned, both sides visible
+- **Deep-link any claim** — anchors in studio and portable export
+
+</details>
 
 ---
 
-<a id="install-in-under-a-minute"></a>
+<a id="install"></a>
 
 ## Install in under a minute
 
@@ -211,8 +241,6 @@ Restart Codex or open a new session. You can also invoke the skill with `$paperl
 
 ### Antigravity CLI
 
-Antigravity installs plugins from a directory, so clone first:
-
 ```bash
 git clone https://github.com/keshav-077/paperloom.git
 cd paperloom
@@ -238,11 +266,9 @@ Explain Attention Is All You Need using the PaperLoom plugin.
 Take this paper and give me the output using the PaperLoom plugin: ./paper.pdf
 ```
 
-When it finishes, the browser opens — self-contained site plus full application, project in your Library. Nothing to export, import, or start manually. A portable `.trace.json` lives alongside for archiving.
+When it finishes, the browser opens — self-contained site plus full application, project in your Library. A portable `.trace.json` lives alongside for archiving.
 
 ---
-
-<a id="the-full-application"></a>
 
 ## The full application
 
@@ -257,13 +283,6 @@ npm run dev
 
 Open `http://localhost:3000`. Press *Open the example project* (or `?sample=1`) for the fully enriched *Attention Is All You Need* demo.
 
-| Workspace | Purpose |
-| --- | --- |
-| **Lab** | Inspect evidence, claims, and health metrics |
-| **Story** | Edit narrative and link claims to sections |
-| **Preview** | Published reading experience |
-| **Library** | Archive, compare, and import projects |
-
 ---
 
 ## Project structure
@@ -273,14 +292,9 @@ paperloom/
 ├── plugins/paperloom/     # Agent plugin (Claude, Codex, Antigravity)
 ├── skills/paperloom/      # Skill definitions and scripts
 ├── src/                   # Next.js web application
-│   ├── app/               # Routes and API
-│   ├── components/        # UI — Lab, Story, Library, Compare
-│   └── lib/               # Schema, validation, evidence logic
 ├── viewer/                # Portable single-file site renderer
-├── scripts/               # Build, check, example generation
-└── docs/
-    ├── images/            # README screenshots from the live UI
-    └── framer-reference/  # Design reference export
+├── scripts/               # Build, check, README asset generation
+└── docs/images/           # README animations (GIF + SVG sources)
 ```
 
 ---
@@ -290,12 +304,14 @@ paperloom/
 ## Development
 
 ```bash
-npm run dev              # development server
-npm run lint             # eslint
-npm run test             # vitest
-npm run build            # production build
-npm run check            # full CI locally
-npm run capture:readme   # regenerate README screenshots (dev server must be running)
+npm run dev                 # development server
+npm run lint                # eslint
+npm run test                # vitest
+npm run build               # production build
+npm run check               # full CI locally
+npm run build:readme-assets # rebuild diagram GIFs from SVG sources
+npm run capture:demo        # re-record website tour GIF (dev server required)
+npm run readme:assets       # rebuild all README visuals
 ```
 
 ---
@@ -306,5 +322,7 @@ npm run capture:readme   # regenerate README screenshots (dev server must be run
 
 <div align="center">
 <br/>
+<img src="docs/images/logo-banner.gif" alt="" width="480"/>
+<br/><br/>
 <sub>Built for researchers who verify before they trust.</sub>
 </div>
