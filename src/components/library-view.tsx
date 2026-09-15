@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, Columns2, FileText, FileUp, Plus, Search, Trash2 } from "lucide-react";
 import type { ResearchProject } from "@/lib/schema";
+import { BrandHeader } from "./ui/brand-header";
 import { foldForSearch } from "@/lib/search-text";
 
 type LibraryViewProps = {
@@ -61,10 +62,7 @@ export function LibraryView({ projects, onOpen, onDelete, onHome, onNew, onImpor
   return (
     <main className="library-page">
       <header className="library-header">
-        <button className="brand" onClick={onHome} aria-label="PaperLoom home">
-          <span className="brand-glyph">t</span>
-          <span><strong>trace</strong><small>research studio</small></span>
-        </button>
+        <BrandHeader onClick={onHome} />
         <div className="library-header-actions">
           <button className="text-button" onClick={onHome}><ArrowLeft size={15} /> Home</button>
           <input ref={importRef} type="file" accept=".json,.trace.json,application/json" hidden onChange={(event) => {

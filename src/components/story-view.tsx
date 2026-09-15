@@ -86,7 +86,7 @@ export function StoryView({ project, embedded = false, onClaimSelect }: StoryVie
 
       <header className="story-hero">
         <div className="story-masthead">
-          <span className="story-mark"><BookOpen size={15} /> Trace story</span>
+          <span className="story-mark"><BookOpen size={15} /> PaperLoom story</span>
           <span>{project.story.readingTime}</span>
         </div>
         <div className="story-hero-copy">

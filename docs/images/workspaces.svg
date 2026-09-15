@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 280" role="img" aria-label="PaperLoom workspaces">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbfaf6"/>
+      <stop offset="100%" stop-color="#f2efe7"/>
+    </linearGradient>
+    <filter id="depth">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#171a22" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Lab -->
+  <g transform="translate(20,40)" filter="url(#depth)">
+    <animateTransform attributeName="transform" type="translate" values="20,40; 20,32; 20,40" dur="4s" begin="0s" repeatCount="indefinite"/>
+    <rect width="200" height="200" rx="18" fill="url(#card)" stroke="#d8d3c9" stroke-width="2"/>
+    <rect x="16" y="16" width="48" height="168" rx="8" fill="#f7f5ef" stroke="#d8d3c9"/>
+    <rect x="72" y="16" width="112" height="80" rx="8" fill="#fff" stroke="#d8d3c9"/>
+    <rect x="72" y="104" width="112" height="80" rx="8" fill="#fff" stroke="#d8d3c9"/>
+    <circle cx="40" cy="40" r="6" fill="#e75b37"/>
+    <text x="100" y="200" text-anchor="middle" fill="#171a22" font-family="system-ui,sans-serif" font-size="14" font-weight="700">Lab</text>
+    <text x="100" y="218" text-anchor="middle" fill="#71766f" font-family="system-ui,sans-serif" font-size="10">Evidence · claims · health</text>
+  </g>
+
+  <!-- Story -->
+  <g transform="translate(240,40)" filter="url(#depth)">
+    <animateTransform attributeName="transform" type="translate" values="240,40; 240,48; 240,40" dur="4s" begin="1s" repeatCount="indefinite"/>
+    <rect width="200" height="200" rx="18" fill="url(#card)" stroke="#d8d3c9" stroke-width="2"/>
+    <rect x="16" y="16" width="56" height="168" rx="8" fill="#eae6dc" stroke="#d8d3c9"/>
+    <rect x="80" y="16" width="104" height="168" rx="8" fill="#fff" stroke="#d8d3c9"/>
+    <path d="M88 40 H176 M88 60 H160 M88 80 H168" stroke="#d8d3c9" stroke-width="2"/>
+    <text x="100" y="200" text-anchor="middle" fill="#171a22" font-family="system-ui,sans-serif" font-size="14" font-weight="700">Story</text>
+    <text x="100" y="218" text-anchor="middle" fill="#71766f" font-family="system-ui,sans-serif" font-size="10">Edit narrative · link claims</text>
+  </g>
+
+  <!-- Preview -->
+  <g transform="translate(460,40)" filter="url(#depth)">
+    <animateTransform attributeName="transform" type="translate" values="460,40; 460,32; 460,40" dur="4s" begin="2s" repeatCount="indefinite"/>
+    <rect width="200" height="200" rx="18" fill="url(#card)" stroke="#d8d3c9" stroke-width="2"/>
+    <text x="100" y="48" text-anchor="middle" fill="#e75b37" font-family="Georgia,serif" font-size="18" font-style="italic">Story</text>
+    <path d="M40 80 H160 M40 100 H140 M40 120 H150" stroke="#d8d3c9" stroke-width="2"/>
+    <rect x="40" y="140" width="120" height="40" rx="6" fill="#f7f5ef" stroke="#d8d3c9"/>
+    <text x="100" y="200" text-anchor="middle" fill="#171a22" font-family="system-ui,sans-serif" font-size="14" font-weight="700">Preview</text>
+    <text x="100" y="218" text-anchor="middle" fill="#71766f" font-family="system-ui,sans-serif" font-size="10">Published reading experience</text>
+  </g>
+
+  <!-- Library -->
+  <g transform="translate(680,40)" filter="url(#depth)">
+    <animateTransform attributeName="transform" type="translate" values="680,40; 680,48; 680,40" dur="4s" begin="3s" repeatCount="indefinite"/>
+    <rect width="180" height="200" rx="18" fill="url(#card)" stroke="#d8d3c9" stroke-width="2"/>
+    <rect x="16" y="16" width="148" height="56" rx="8" fill="#2e7254" opacity="0.15"/>
+    <rect x="16" y="80" width="148" height="56" rx="8" fill="#e75b37" opacity="0.12"/>
+    <rect x="16" y="144" width="148" height="56" rx="8" fill="#171a22" opacity="0.08"/>
+    <text x="90" y="200" text-anchor="middle" fill="#171a22" font-family="system-ui,sans-serif" font-size="14" font-weight="700">Library</text>
+    <text x="90" y="218" text-anchor="middle" fill="#71766f" font-family="system-ui,sans-serif" font-size="10">Archive · compare · import</text>
+  </g>
+</svg>

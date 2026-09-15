@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { ArrowLeft, BookMarked, Gauge, ShieldCheck, TriangleAlert } from "lucide-react";
 import { compareProjects, formatDifference, type SharedMetric } from "@/lib/compare-projects";
 import type { Claim, ResearchProject } from "@/lib/schema";
+import { BrandHeader } from "./ui/brand-header";
 
 const kindLabels: Record<Claim["kind"], string> = {
   "reported-result": "Result",
@@ -18,7 +19,7 @@ const kindLabels: Record<Claim["kind"], string> = {
  *
  * Bu ekranın söylemediği şey, söylediği kadar önemli: hangi makalenin haklı
  * olduğuna dair bir yargı YOK. Böyle bir yargı kanıta değil yoruma dayanırdı
- * ve Trace'in tek kuralı her cümlenin bir sayfaya bağlı olması. Ekran yalnızca
+ * ve PaperLoom'un tek kuralı her cümlenin bir sayfaya bağlı olması. Ekran yalnızca
  * hizalıyor — aynı ölçüt, aynı terim — ve iki kaynağı da göstererek kararı
  * okuyucuya bırakıyor. Her sayının yanında geldiği sayfa yazıyor.
  */
@@ -47,10 +48,7 @@ export function CompareView({
   return (
     <main className="compare-page">
       <header className="library-header">
-        <button className="brand" onClick={onBack} aria-label="Back to the library">
-          <span className="brand-glyph">t</span>
-          <span><strong>trace</strong><small>research studio</small></span>
-        </button>
+        <BrandHeader onClick={onBack} label="Back to the library" />
         <div className="library-header-actions">
           <button className="text-button" onClick={onBack}><ArrowLeft size={15} /> Library</button>
         </div>
@@ -60,7 +58,7 @@ export function CompareView({
         <p className="landing-eyebrow"><span /> Side by side</p>
         <h1>Two papers, lined up.</h1>
         <p>
-          Nothing here is a verdict. Trace aligns what each paper reports — the same benchmark, the
+          Nothing here is a verdict. PaperLoom aligns what each paper reports — the same benchmark, the
           same term — and shows both sources so you can judge. Every number carries the page it came from.
         </p>
       </section>

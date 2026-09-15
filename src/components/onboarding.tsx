@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowRight, BookOpen, Check, Eye, EyeOff, FileText, Link2, LockKeyhole, Plus, Sparkles, Upload, Users, X } from "lucide-react";
+import { BrandHeader } from "./ui/brand-header";
 import {
   createSingleModelTeam,
   defaultModelByProvider,
@@ -170,10 +171,7 @@ export function Onboarding({ onGenerate, onSample, onLibrary, libraryCount, init
   return (
     <main className="onboarding-page">
       <header className="landing-header">
-        <a className="brand" href="#top" aria-label="Trace home">
-          <span className="brand-glyph">t</span>
-          <span><strong>trace</strong><small>research studio</small></span>
-        </a>
+        <BrandHeader onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} />
         <div className="landing-header-actions">
           <button className="text-button" onClick={onLibrary}><BookOpen size={15} /> Library <span className="nav-count">{libraryCount}</span></button>
           <button className="text-button" onClick={onSample} disabled={sampleBusy}>{sampleBusy ? "Loading example…" : "Open the example project"} <ArrowRight size={15} /></button>
@@ -324,7 +322,7 @@ export function Onboarding({ onGenerate, onSample, onLibrary, libraryCount, init
             {usedProviders.filter((item) => item.hint).map((item) => (
               <p className="provider-hint" key={item.id}><strong>{item.label}.</strong> {item.hint}</p>
             ))}
-            {usedProviders.some((item) => item.id === "openrouter") && <div className="openrouter-catalog-row"><span>The catalogue lists only <code>text-only output + structured output</code> models, which are the ones safe for the Trace canvas. Image input may be supported; image-output models are excluded from StorySpec generation.</span><button onClick={loadOpenRouterModels} disabled={modelsLoading}>{modelsLoading ? "Loading…" : "Load compatible models"}</button></div>}
+            {usedProviders.some((item) => item.id === "openrouter") && <div className="openrouter-catalog-row"><span>The catalogue lists only <code>text-only output + structured output</code> models, which are the ones safe for the PaperLoom canvas. Image input may be supported; image-output models are excluded from StorySpec generation.</span><button onClick={loadOpenRouterModels} disabled={modelsLoading}>{modelsLoading ? "Loading…" : "Load compatible models"}</button></div>}
             <p className="key-note">Keys are sent to the backend proxy for this generation request only; nothing is stored in the browser or in the project.</p>
           </section>
           {error && <p className="form-error">{error}</p>}

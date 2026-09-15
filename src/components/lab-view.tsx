@@ -35,6 +35,7 @@ import {
   QuizView,
 } from "@/visuals";
 import { EvidenceDrawer } from "./evidence-drawer";
+import { PaperMap, type PaperMapItem } from "./ui/paper-map";
 
 type LabViewProps = {
   project: ResearchProject;
@@ -111,7 +112,7 @@ export function LabView({ project, fileUrl, selectedClaimId, onClaimSelect }: La
       project.applicationGuide,
   );
 
-  const nav = [
+  const nav: PaperMapItem[] = [
     { id: "overview", label: "Overview", icon: Lightbulb },
     ...(project.primer ? [{ id: "primer", label: t.navPrimer, icon: GraduationCap }] : []),
     ...(hasPractice ? [{ id: "practice", label: t.navPractice, icon: SlidersHorizontal }] : []),
@@ -128,26 +129,14 @@ export function LabView({ project, fileUrl, selectedClaimId, onClaimSelect }: La
   return (
     <LanguageProvider language={project.language}>
     <div className="lab-layout">
-      <nav className="lab-nav" aria-label={t.labSectionsAria}>
-        <div className="lab-nav-label">{t.paperMap}</div>
-        {nav.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              className={section === item.id ? "active" : ""}
-              onClick={() => setSection(item.id)}
-            >
-              <Icon size={16} />
-              {item.label}
-            </button>
-          );
-        })}
-        <div className="source-count">
-          <span>{project.evidence.sources.length}</span>
-          <small>{t.linkedSources}</small>
-        </div>
-      </nav>
+      <PaperMap
+        label={t.labSectionsAria}
+        items={nav}
+        activeId={section}
+        sourceCount={project.evidence.sources.length}
+        sourceLabel={t.linkedSources}
+        onSelect={setSection}
+      />
 
       <main className="lab-main">
         <header className="lab-section-header">

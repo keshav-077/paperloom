@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Download, FileJson, FlaskConical, Home, LayoutTemplate, MoreHorizontal, Plus, Share2 } from "lucide-react";
+import { WorkspaceNav } from "./ui/workspace-nav";
 import { buildStandaloneStory } from "@/lib/export-story";
 import { claimHash, parseDeepLink, sectionHash } from "@/lib/deep-link";
 import {
@@ -411,7 +411,7 @@ export function AppShell() {
 
   const t = stringsFor(project?.language);
 
-  if (!hydrated) return <div className="boot-screen"><span>trace</span></div>;
+  if (!hydrated) return <div className="boot-screen"><span>PaperLoom</span></div>;
   if (screen === "compare" && comparison) {
     return (
       <CompareView
@@ -443,27 +443,22 @@ export function AppShell() {
   }
 
   const selectedClaim = project.evidence.claims.find((claim) => claim.id === selectedClaimId);
-  const slug = project.evidence.paper.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "trace-story";
+  const slug = project.evidence.paper.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "paperloom-story";
 
   return (
     <div className="workspace-shell" style={{ "--accent": project.story.accent } as React.CSSProperties}>
-      <header className="workspace-header">
-        <button className="workspace-brand" onClick={() => setScreen("home")}><span className="brand-glyph">t</span><span><strong>trace</strong><small>research studio</small></span></button>
-        <div className="project-identity"><span>Current paper</span><strong>{project.evidence.paper.title}</strong></div>
-        <nav className="mode-tabs" aria-label="Workspace mode">
-          <button className={mode === "lab" ? "active" : ""} onClick={() => setMode("lab")}><FlaskConical size={15} /> Lab</button>
-          <button className={mode === "story" ? "active" : ""} onClick={() => setMode("story")}><LayoutTemplate size={15} /> Story</button>
-          <button className={mode === "preview" ? "active" : ""} onClick={() => setMode("preview")}><Share2 size={15} /> Preview</button>
-        </nav>
-        <div className="workspace-actions">
-          <button title={t.home} onClick={() => setScreen("home")}><Home size={16} /><span>{t.home}</span></button>
-          <button title={t.library} onClick={() => setScreen("library")}><BookOpen size={16} /><span>{t.library}</span></button>
-          <button title="Download the project JSON" onClick={() => download(`${slug}.trace.json`, JSON.stringify(project, null, 2), "application/json")}><FileJson size={16} /><span>JSON</span></button>
-          <button className="export-button" onClick={() => download(`${slug}.html`, buildStandaloneStory(project), "text/html")}><Download size={16} /> Export</button>
-          <button className="icon-button" title="New paper" onClick={newProject}><Plus size={17} /></button>
-          <button className="icon-button" title="Coming soon" disabled><MoreHorizontal size={17} /></button>
-        </div>
-      </header>
+      <WorkspaceNav
+        mode={mode}
+        projectTitle={project.evidence.paper.title}
+        homeLabel={t.home}
+        libraryLabel={t.library}
+        onHome={() => setScreen("home")}
+        onLibrary={() => setScreen("library")}
+        onModeChange={setMode}
+        onExportJson={() => download(`${slug}.trace.json`, JSON.stringify(project, null, 2), "application/json")}
+        onExportHtml={() => download(`${slug}.html`, buildStandaloneStory(project), "text/html")}
+        onNew={newProject}
+      />
       {warnings.length > 0 && <div className="warning-strip">{warnings.length} supporting sources could not be read; the analysis was completed with the rest.<button onClick={() => setWarnings([])}>Dismiss</button></div>}
       <div className="workspace-content">
         {mode === "lab" && <LabView project={project} fileUrl={fileUrl} selectedClaimId={selectedClaimId} onClaimSelect={setSelectedClaimId} />}
