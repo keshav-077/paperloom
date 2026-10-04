@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   /**
    * Plugin teslimi siteyi 127.0.0.1 üzerinden açıyor ve kullanıcılar geliştirme
    * sunucusuna da aynı adresle geliyor. Bu host'lara izin verilmezse Next dev

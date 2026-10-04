@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, Download, FileJson, FlaskConical, Home, LayoutTemplate, Plus, Share2 } from "lucide-react";
+import { BrandHeader } from "./brand-header";
 
 export type WorkspaceMode = "lab" | "story" | "preview";
 
@@ -31,9 +32,7 @@ export function WorkspaceNav({
 }: WorkspaceNavProps) {
   return (
     <header className="workspace-header">
-      <button type="button" className="workspace-brand brand-mark-only" onClick={onHome} aria-label="PaperLoom home">
-        <span className="brand-mark">P · PaperLoom</span>
-      </button>
+      <BrandHeader onClick={onHome} variant="workspace" />
       <div className="project-identity">
         <span>Current paper</span>
         <strong>{projectTitle}</strong>

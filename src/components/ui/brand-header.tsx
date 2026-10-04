@@ -1,5 +1,7 @@
 "use client";
 
+import { PaperLoomLogoMark } from "./paperloom-logo";
+
 type BrandHeaderProps = {
   onClick?: () => void;
   variant?: "landing" | "workspace" | "mark";
@@ -7,23 +9,12 @@ type BrandHeaderProps = {
 };
 
 export function BrandHeader({ onClick, variant = "landing", label = "PaperLoom home" }: BrandHeaderProps) {
-  const className = variant === "workspace" ? "workspace-brand" : "brand";
-
-  if (variant === "mark") {
-    return (
-      <button type="button" className={className} onClick={onClick} aria-label={label}>
-        <span className="brand-mark">P · PaperLoom</span>
-      </button>
-    );
-  }
+  const className =
+    variant === "workspace" ? "workspace-brand brand-mark-only" : variant === "mark" ? "brand brand-mark-only" : "brand";
 
   return (
     <button type="button" className={className} onClick={onClick} aria-label={label}>
-      <span className="brand-glyph">P</span>
-      <span>
-        <strong>PaperLoom</strong>
-        <small>research studio</small>
-      </span>
+      <PaperLoomLogoMark className="brand-logo-mark" />
     </button>
   );
 }

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowRight, BookOpen, Check, Eye, EyeOff, FileText, Link2, LockKeyhole, Plus, Sparkles, Upload, Users, X } from "lucide-react";
 import { BrandHeader } from "./ui/brand-header";
+import { PaperLoomLogoBanner } from "./ui/paperloom-logo";
 import {
   createSingleModelTeam,
   defaultModelByProvider,
@@ -180,6 +181,7 @@ export function Onboarding({ onGenerate, onSample, onLibrary, libraryCount, init
 
       <section className="landing-hero" id="top">
         <div className="landing-copy">
+          <PaperLoomLogoBanner className="landing-logo-banner" />
           <p className="landing-eyebrow"><span /> Evidence-first paper studio</p>
           <h1>Reading a paper is one thing. <em>Actually seeing it</em> is another.</h1>
           <p className="landing-lead">

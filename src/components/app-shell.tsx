@@ -19,6 +19,7 @@ import { LabView } from "./lab-view";
 import { CompareView } from "./compare-view";
 import { LibraryView } from "./library-view";
 import { Onboarding, type GenerationOptions } from "./onboarding";
+import { PaperLoomLogoMark } from "./ui/paperloom-logo";
 import { StoryEditor } from "./story-editor";
 import { StoryView } from "./story-view";
 
@@ -411,7 +412,13 @@ export function AppShell() {
 
   const t = stringsFor(project?.language);
 
-  if (!hydrated) return <div className="boot-screen"><span>PaperLoom</span></div>;
+  if (!hydrated) {
+    return (
+      <div className="boot-screen">
+        <PaperLoomLogoMark className="boot-logo-mark" />
+      </div>
+    );
+  }
   if (screen === "compare" && comparison) {
     return (
       <CompareView
