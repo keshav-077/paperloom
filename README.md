@@ -12,6 +12,38 @@ PaperLoom turns research papers into verifiable, learnable, runnable workspaces 
 
 <img src="docs/images/demo.gif" alt="PaperLoom studio tour — home, Lab, evidence, Story, Preview, Library" width="920"/>
 
+<br/><br/>
+
+<a id="live-demo"></a>
+
+### Live deployment
+
+<table>
+<tr>
+<td align="center" width="100%">
+
+**Try the hosted studio (Google Cloud Run)**
+
+<br/><br/>
+
+<a href="https://paperloom-40439816779.asia-south1.run.app"><img src="https://img.shields.io/badge/OPEN_LIVE_APP-paperloom.on_Cloud_Run-E75B37?style=for-the-badge&labelColor=171A22" alt="Open live PaperLoom app"/></a>
+
+<br/><br/>
+
+**https://paperloom-40439816779.asia-south1.run.app**
+
+<br/>
+
+<a href="https://paperloom-40439816779.asia-south1.run.app/?sample=1"><strong>Open the example project → Attention Is All You Need</strong></a>
+
+<br/><br/>
+
+<sub>Health check: <code>/api/health</code> · Region: <code>asia-south1</code> · No API keys required for the bundled demo</sub>
+
+</td>
+</tr>
+</table>
+
 <br/>
 
 <p>
@@ -30,9 +62,12 @@ PaperLoom turns research papers into verifiable, learnable, runnable workspaces 
 </p>
 
 <p>
+  <a href="#live-demo"><strong>Live demo</strong></a> ·
   <a href="#install"><strong>Install</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
   <a href="#architecture"><strong>Architecture</strong></a> ·
+  <a href="#technology"><strong>Technology</strong></a> ·
+  <a href="#deployment"><strong>Deploy</strong></a> ·
   <a href="#what-you-get"><strong>What you get</strong></a> ·
   <a href="#development"><strong>Develop</strong></a>
 </p>
@@ -50,6 +85,16 @@ Summarising a paper takes seconds. **Trusting the summary takes hours.**
 Ask any model to summarise a paper and you get fluent prose you cannot check. Which sentence came from which page? Is this something the authors measured, or something they suggested? To find out you have to go back to the paper — so the summary saved you nothing.
 
 **PaperLoom inverts that.** Every claim carries the page and the exact quote it rests on. Measured results, author interpretation, and background are labelled separately. Anything the excerpt does not directly support is never marked verified.
+
+**What it is solving**
+
+| Pain | PaperLoom response |
+| --- | --- |
+| Summaries you cannot audit | Every surfaced claim links to **page + verbatim quote** |
+| Mixed fact, interpretation, and background | Explicit **claim types** and validation before publish |
+| One-size-fits-all model for every task | **Role-based model teams** (evidence, technical, report, visual) in the web app |
+| Lock-in to a single vendor | **Plugin path** uses your existing coding agent; **web path** accepts your provider keys |
+| Fragile one-off exports | Portable **`.trace.json`** plus a standalone **viewer** you can host anywhere |
 
 <table>
 <tr>
@@ -156,6 +201,83 @@ Agent in. Proof-linked site out. No second API key — your existing Claude, Cod
 </td>
 </tr>
 </table>
+
+### System design (web studio)
+
+PaperLoom is a **Next.js** application with a **single evidence graph** at the center. The UI is split into workspaces (Lab, Story, Preview, Library), but they all read and write the same structured project — not four separate documents.
+
+| Layer | Responsibility |
+| --- | --- |
+| **Browser UI** | Onboarding, workspaces, deep links, library import/export |
+| **API routes** | `/api/generate` (streaming PDF pipeline), `/api/library`, `/api/health`, OpenRouter catalogue |
+| **Generation pipeline** | Multi-pass evidence extraction → technical appendix → deep report → story spec, with **schema validation** at each stage |
+| **Storage** | Projects as `.trace.json` on disk (`TRACE_DATA_DIR` / `~/.trace/library` locally; configurable in containers) |
+| **Viewer bundle** | Prebuilt standalone HTML for portable sites (plugin delivery and static export) |
+| **Agent plugin** | Resolves papers on arXiv, runs `pdftotext`, orchestrates the agent skill, opens the studio |
+
+The plugin path keeps inference on **your agent session**. The web path sends PDFs and keys to **your chosen cloud or local providers** through the server-side generate route — keys are supplied by the user in the UI, not baked into the deployment.
+
+---
+
+<a id="technology"></a>
+
+## Technology stack
+
+| Area | Choices |
+| --- | --- |
+| **Application** | Next.js 16, React 19, TypeScript 5, Tailwind CSS 4 |
+| **Validation** | Zod schemas for projects, evidence, story, and generation outputs |
+| **Math & figures** | Temml (LaTeX), embedded figures in `.trace.json` for offline-safe viewer |
+| **Testing** | Vitest, ESLint, CI on Node 24 + 26 |
+| **Plugin tooling** | Agent skills (Claude Code, Codex, Antigravity CLI), Poppler `pdftotext` for page-accurate text |
+| **Container deploy** | Docker multi-stage build (`standalone` output), Google **Cloud Build** → **Cloud Run** |
+
+---
+
+## AI models and providers
+
+The web app supports **single-model** or **team** orchestration. Each generation role can use a different provider:
+
+| Role | Typical focus | Default in recommended team |
+| --- | --- | --- |
+| **Evidence** | PDF reading, claims, source map | Google **Gemini 3.7 Flash** |
+| **Technical** | Methods, equations, experiments | Anthropic **Claude Opus 4.1** |
+| **Report** | Deep report and synthesis | OpenAI **GPT-5.6 Sol** |
+| **Visual** | Canvas / scrollytelling structure | **OpenRouter** (auto router) |
+
+**Supported providers:** Google Gemini, OpenAI, Anthropic Claude, OpenRouter (dynamic catalogue), and **local** servers (Ollama / LM Studio / llama.cpp). Local models can run report/visual stages on-machine; stages that **read the PDF** still require a document-capable provider.
+
+Plugin users do not configure this table — the **coding agent you already use** (Claude, Codex, or Antigravity) performs the skill with its own model.
+
+---
+
+<a id="deployment"></a>
+
+## Deployment
+
+The repository includes a production **Dockerfile** and scripts to deploy the full studio (not just static exports) to **Google Cloud Run**.
+
+| Item | Detail |
+| --- | --- |
+| **Live instance** | [https://paperloom-40439816779.asia-south1.run.app](https://paperloom-40439816779.asia-south1.run.app) |
+| **Example URL** | [https://paperloom-40439816779.asia-south1.run.app/?sample=1](https://paperloom-40439816779.asia-south1.run.app/?sample=1) |
+| **GCP project** | `project-239daf46-b8f2-429e-96d` |
+| **Region** | `asia-south1` |
+| **Service name** | `paperloom` |
+
+**Redeploy from your machine** (Google Cloud SDK + `gcloud auth login`):
+
+```bash
+# Windows PowerShell
+./scripts/gcp-deploy.ps1
+
+# Linux / macOS / Cloud Shell
+./scripts/gcp-deploy.sh
+```
+
+Optional environment variables: `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_SERVICE_NAME`, `TRACE_DATA_DIR` (library path inside the container).
+
+**Static paper sites** (viewer-only exports) can be hosted on any static host — see `docs/framer-reference/HOSTING.md`. That is separate from the full Next.js studio on Cloud Run.
 
 ---
 
@@ -273,6 +395,8 @@ When it finishes, the browser opens — self-contained site plus full applicatio
 ## The full application
 
 The plugin is one way in. The web app adds generation with your own provider keys, an editable narrative, and a local library under `~/.trace/library`.
+
+**Prefer not to install?** Use the **[live studio](https://paperloom-40439816779.asia-south1.run.app)** — same UI as local dev, with the enriched example one click away.
 
 ```bash
 git clone https://github.com/keshav-077/paperloom.git
